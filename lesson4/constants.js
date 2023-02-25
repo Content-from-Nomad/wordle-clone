@@ -1,0 +1,2 @@
+const WORD_LENGTH = 5
+const MAX_ATTEMPTS = 6

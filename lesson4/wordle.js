@@ -132,7 +132,7 @@ function loadOrStartGame() {
     }
     return {
         attempt: 1,
-        userAttempts: [],
+        userAttempts: Array.from({ length: MAX_ATTEMPTS }).map(() => ""),
         highlightedRows: [],
         keyboard: getKeyboard(),
         answer
