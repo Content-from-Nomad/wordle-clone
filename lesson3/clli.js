@@ -8,10 +8,20 @@
 // {a: "present", b: "unknown", c: "absent"}
 
 // maybe for keyboard
-// green = ["a", "l"]
-// yellow = ["a", "l", "e"]
+// present: ["a", "l"]
+// absent: ["a", "l", "e"]
+
+// a p p l e
+// p a p e r
+// b a p p e
+
 
 const wordList = [
+    "right",
+    "since",
+    "fifth",
+    "bappe",
+    "fifty",
     "apple",
     "alley",
     "paper",
@@ -28,17 +38,13 @@ const rating = {
     correct: 3
 }
 
-function startGame(round) {
-    // 7. load or start the game
-    let {
-        attempt,
-        userAttempts,
-        highlightedRows,
-        keyboard,
-        answer
-    } = loadOrStartGame()
-    console.log('userAttempts', userAttempts)
 
+function startGame(round) {
+    const userAttempts = []
+    const highlightedRows = []
+    const answer = "apple" // TODO: change this to by date
+    let keyboard = getKeyboard()
+    let attempt = 1
     while (attempt <= round) {
         let userInput = prompt("Guess a five letter word: ")
         // 1. Check if word is in word list 
@@ -55,12 +61,12 @@ function startGame(round) {
             // 5. highlight keyboard
             keyboard = updateKeyboardHighlights(keyboard, userInput, highlightedCharacters)
             console.log(keyboard)
-            // 6. save game 
+            // 6. Save game
             saveGame({
                 attempt,
+                keyboard,
                 userAttempts,
-                highlightedRows,
-                keyboard
+                highlightedRows
             })
         } else {
             retry(userInput)
@@ -107,75 +113,45 @@ function getKeyboard() {
     return Object.fromEntries(entries)
 }
 
-// Iterate keys, pass key’s current state and object of new characters state from guess to function, it returns character’s new state
-function updateKeyboardHighlights(keyboard, guess, highlightedCharacters) {
+function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
+    // 5a. use userInput ("apple") highlightedCharacters (["correct", "present"...])
+    // 5b. compare keyboard["a"] with "correct", 
+    // if keyboard status < "correct", update keyboard  
     const newKeyboard = Object.assign({}, keyboard)
-    const guessStatus = getGuessBestStatus(guess, highlightedCharacters)
-    Object.keys(guessStatus).forEach((character) => {
-        const prevStatus = keyboard[character]
-        const nextStatus = getCharacterNewStatus(character, prevStatus, guessStatus)
-        newKeyboard[character] = nextStatus
-    })
-    return newKeyboard
-}
 
-// consolidate the newHighlight, one character and the best status of the guess 
-// this edge case 
-// p = correct
-// p = present 
-function getGuessBestStatus(guess, highlightedCharacters) {
-    const result = {}
-    for (let i = 0; i < guess.length; i++) {
-        const char = guess[i]
-        const nextStatus = highlightedCharacters[i]
-        if (char in result) {
-            const nextRating = rating[nextStatus]
-            const prevRating = result[char]
-            if (nextRating > prevRating) {
-                result[char] = nextStatus
-            }
-            continue
+    for (let i = 0; i < highlightedCharacter.length; i++) {
+        const character = userInput[i] // R
+        const nextStatus = highlightedCharacter[i] // absent
+        const nextRating = rating[nextStatus] // 1
+        const previousStatus = newKeyboard[character] // unknown
+        const previousRating = rating[previousStatus] // 0
+
+        if (nextRating > previousRating) {
+            newKeyboard[character] = nextStatus
         }
-        result[char] = nextStatus
     }
-    return result
-}
 
-// given a character from the keyboard, it's current status, and the best guess status
-// return what status i should use this round
-function getCharacterNewStatus(character, prevStatus, guessStatus) {
-    if (!character in guessStatus) {
-        return prevStatus
-    }
-    const nextStatus = guessStatus[character]
-    const nextRating = rating[nextStatus]
-    const prevRating = rating[prevStatus]
-    if (nextRating > prevRating) {
-        return nextStatus
-    }
-    return prevStatus
+    return newKeyboard
 }
 
 function saveGame(gameState) {
     window.localStorage.setItem("PREFACE_WORDLE", JSON.stringify(gameState))
 }
 
-function loadOrStartGame() {
-    const answer = wordList[0]
-    const prevGame = JSON.parse(window.localStorage.getItem("PREFACE_WORDLE"))
-    if (prevGame) {
-        return {
-            ...prevGame,
-            answer
-        }
-    }
-    return {
-        attempt: 1,
-        userAttempts: [],
-        highlightedRows: [],
-        keyboard: getKeyboard(),
-        answer
-    }
-}
+startGame(1)
 
-startGame(2) 
+
+// {
+//     present: [i],
+//     absent: [s, n, c, e]
+// }
+
+
+
+
+// {
+//     correct: [i, a, p],
+//     present: [t, a, p],
+//     absent: [s, n, c, e, r, g, h],
+//     unknown: [a, b, c, d...]
+// }

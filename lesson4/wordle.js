@@ -95,54 +95,27 @@ function getKeyboard() {
     return Object.fromEntries(entries)
 }
 
-// Iterate keys, pass key’s current state and object of new characters state from guess to function, it returns character’s new state
-function updateKeyboardHighlights(keyboard, guess, highlightedCharacters) {
+function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
+    // 5a. use userInput ("apple") highlightedCharacters (["correct", "present"...])
+    // 5b. compare keyboard["a"] with "correct", 
+    // if keyboard status < "correct", update keyboard  
     const newKeyboard = Object.assign({}, keyboard)
-    const guessStatus = getGuessBestStatus(guess, highlightedCharacters)
-    Object.keys(guessStatus).forEach((character) => {
-        const prevStatus = keyboard[character]
-        const nextStatus = getCharacterNewStatus(character, prevStatus, guessStatus)
-        newKeyboard[character] = nextStatus
-    })
+
+    for (let i = 0; i < highlightedCharacter.length; i++) {
+        const character = userInput[i] // R
+        const nextStatus = highlightedCharacter[i] // absent
+        const nextRating = rating[nextStatus] // 1
+        const previousStatus = newKeyboard[character] // unknown
+        const previousRating = rating[previousStatus] // 0
+
+        if (nextRating > previousRating) {
+            newKeyboard[character] = nextStatus
+        }
+    }
+
     return newKeyboard
 }
 
-// consolidate the newHighlight, one character and the best status of the guess 
-// this edge case 
-// p = correct
-// p = present 
-function getGuessBestStatus(guess, highlightedCharacters) {
-    const result = {}
-    for (let i = 0; i < guess.length; i++) {
-        const char = guess[i]
-        const nextStatus = highlightedCharacters[i]
-        if (char in result) {
-            const nextRating = rating[nextStatus]
-            const prevRating = result[char]
-            if (nextRating > prevRating) {
-                result[char] = nextStatus
-            }
-            continue
-        }
-        result[char] = nextStatus
-    }
-    return result
-}
-
-// given a character from the keyboard, it's current status, and the best guess status
-// return what status i should use this round
-function getCharacterNewStatus(character, prevStatus, guessStatus) {
-    if (!character in guessStatus) {
-        return prevStatus
-    }
-    const nextStatus = guessStatus[character]
-    const nextRating = rating[nextStatus]
-    const prevRating = rating[prevStatus]
-    if (nextRating > prevRating) {
-        return nextStatus
-    }
-    return prevStatus
-}
 
 function saveGame(gameState) {
     window.localStorage.setItem("PREFACE_WORDLE", JSON.stringify(gameState))
