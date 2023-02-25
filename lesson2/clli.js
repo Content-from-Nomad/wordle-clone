@@ -40,7 +40,7 @@ function startGame(round) {
             const highlightedCharacters = checkCharacters(userInput, answer)
             alert(highlightedCharacters)
             // 5. highlight keyboard
-            highlightKeyboard(keyboard)
+            // TODO
             console.log(keyboard)
         } else {
             retry(userInput)
@@ -85,10 +85,6 @@ function getKeyboard() {
         entries.push([alphabet, "unknown"])
     }
     return Object.fromEntries(entries)
-}
-
-function highlightKeyboard(keyboard) {
-
 }
 
 startGame(2) 
