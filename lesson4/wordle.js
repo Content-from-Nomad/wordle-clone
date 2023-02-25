@@ -1,16 +1,3 @@
-// word =   alley
-// answer = apple
-// return ["correct", "present", "present", "present", "absent"]
-
-
-// ["a", "b", "c"...]
-// ["present", "unknown", "absent"...]
-// {a: "present", b: "unknown", c: "absent"}
-
-// maybe for keyboard
-// green = ["a", "l"]
-// yellow = ["a", "l", "e"]
-
 const wordList = [
     "apple",
     "alley",
@@ -28,12 +15,18 @@ const rating = {
     correct: 3
 }
 
+// TODO: obsolete this function to make it work with web app
 function startGame(round) {
-    const userAttempts = []
-    const highlightedRows = []
-    const answer = wordList[0] // TODO: change this to by date
-    let keyboard = getKeyboard()
-    let attempt = 1
+    // 7. load or start the game
+    let {
+        attempt,
+        userAttempts,
+        highlightedRows,
+        keyboard,
+        answer
+    } = loadOrStartGame()
+    console.log('userAttempts', userAttempts)
+
     while (attempt <= round) {
         let userInput = prompt("Guess a five letter word: ")
         // 1. Check if word is in word list 
@@ -155,8 +148,21 @@ function saveGame(gameState) {
     window.localStorage.setItem("PREFACE_WORDLE", JSON.stringify(gameState))
 }
 
-function loadGame() {
-    // TODO
+function loadOrStartGame() {
+    const answer = wordList[0]
+    const prevGame = JSON.parse(window.localStorage.getItem("PREFACE_WORDLE"))
+    if (prevGame) {
+        return {
+            ...prevGame,
+            answer
+        }
+    }
+    return {
+        attempt: 1,
+        userAttempts: [],
+        highlightedRows: [],
+        keyboard: getKeyboard(),
+        answer
+    }
 }
 
-startGame(2) 
