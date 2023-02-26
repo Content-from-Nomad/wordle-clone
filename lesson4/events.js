@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** Handle Submit (Student) */
-    function handleSubmit(guess) {
+    async function handleSubmit(guess) {
         const { attempt, keyboard, answer } = GAME_STATE;
         if (isInputCorrect(guess)) {
             const highlightedCharacters = checkCharacters(guess, answer);
@@ -112,50 +112,53 @@ document.addEventListener("DOMContentLoaded", () => {
             // saveGame(GAME_STATE)
             console.log("GAME_STATE", GAME_STATE);
 
-            paintAttempt(attempt, highlightedCharacters);
+            await paintAttempt(attempt, highlightedCharacters);
 
-            // GAME_STATE.attempt = attempt + 1
+            GAME_STATE.attempt = attempt + 1
         }
     }
 
     /** Painting One Attempt (Student) */
-    function paintAttempt(attempt, highlightedCharacters) {
+    async function paintAttempt(attempt, highlightedCharacters) {
         stopInteraction();
-        paintRow(attempt, highlightedCharacters);
+        await paintRow(attempt, highlightedCharacters);
+        // await paintKeyboard()
+        startInteraction()
     }
 
     /** Painting a row on the board (Partially student) */
-    function paintRow(index, evaluation) {
+    async function paintRow(index, evaluation) {
         const { status: gameStatus, answer } = GAME_STATE;
         const tileIndex = (index - 1) * WORD_LENGTH;
         const length = tileIndex + WORD_LENGTH;
 
-        for (let i = tileIndex; i < length; i++) {
-            const charIndex = i % WORD_LENGTH;
-            const status = evaluation[charIndex];
-            /** Student */
-            TILES[i].dataset["animation"] = "flip";
-            TILES[i].style.animationDelay = `${charIndex * 400}ms`;
-            TILES[i].onanimationstart = () => {
-                setTimeout(() => (TILES[i].dataset["status"] = status), 250);
-            };
-            // If this is the last tile of the row
-            if (i === length - 1) {
-                if (gameStatus === "success") {
-                    TILES[i].onanimationend = handleSuccessAnimation;
-                } else if (gameStatus === "failure") {
-                    TILES[i].onanimationend = () => {
-                        alert(`The word was ${answer.toUpperCase()}`);
-                        // createToast(`The word was ${ANSWER.toUpperCase()}`, "fail");
-                    };
-                } else {
-                    TILES[i].onanimationend = () => {
-                        GAME_STATE.attempt += 1;
-                        startInteraction();
-                    };
+        return new Promise((resolve) => {
+            for (let i = tileIndex; i < length; i++) {
+                const charIndex = i % WORD_LENGTH;
+                const status = evaluation[charIndex];
+                /** Student */
+                TILES[i].dataset["animation"] = "flip";
+                TILES[i].style.animationDelay = `${charIndex * 400}ms`;
+                TILES[i].onanimationstart = () => {
+                    setTimeout(() => (TILES[i].dataset["status"] = status), 250);
+                };
+                // If this is the last tile of the row
+                if (i === length - 1) {
+                    if (gameStatus === "success") {
+                        TILES[i].onanimationend = handleSuccessAnimation;
+                    } else if (gameStatus === "failure") {
+                        TILES[i].onanimationend = () => {
+                            alert(`The word was ${answer.toUpperCase()}`);
+                            // createToast(`The word was ${ANSWER.toUpperCase()}`, "fail");
+                        };
+                    } else {
+                        TILES[i].onanimationend = () => {
+                            resolve()
+                        };
+                    }
                 }
             }
-        }
+        })
     }
 
     /** When game ends and status is success */
