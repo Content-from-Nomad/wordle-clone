@@ -1,4 +1,12 @@
-const wordList = ["apple", "alley", "paper", "melon", "zebra", "books", "cheap"];
+const wordList = [
+    "apple",
+    "alley",
+    "paper",
+    "melon",
+    "zebra",
+    "books",
+    "cheap",
+];
 
 const rating = {
     unknown: 0,
@@ -9,7 +17,8 @@ const rating = {
 
 function startGame(round) {
     // 8. load or start the game
-    let { attempt, userAttempts, highlightedRows, keyboard, answer, status } = loadOrStartGame();
+    let {attempt, userAttempts, highlightedRows, keyboard, answer, status} =
+        loadOrStartGame();
 
     while (attempt <= round) {
         let userInput = prompt("Guess a five letter word: ");
@@ -25,7 +34,11 @@ function startGame(round) {
             highlightedRows.push(highlightedCharacters);
             console.log(highlightedCharacters);
             // 5. highlight keyboard
-            keyboard = updateKeyboardHighlights(keyboard, userInput, highlightedCharacters);
+            keyboard = updateKeyboardHighlights(
+                keyboard,
+                userInput,
+                highlightedCharacters
+            );
             console.log(keyboard);
             // 6. update status
             status = updateGameStatus(userInput, answer, attempt, round);
@@ -128,7 +141,7 @@ function loadOrStartGame() {
     }
     return {
         attempt: 1,
-        userAttempts: Array.from({ length: MAX_ATTEMPTS }).map(() => ""),
+        userAttempts: Array.from({length: MAX_ATTEMPTS}).map(() => ""),
         highlightedRows: [],
         keyboard: getKeyboard(),
         answer,
