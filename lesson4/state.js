@@ -1,7 +1,7 @@
 /** Game State (Student) */
 const GameState = {
     attempt: 0,
-    userAttempts: Array.from({length: MAX_ATTEMPTS}).map(() => ""),
+    userAttempts: [],
     highlightedRows: [],
     keyboard: getKeyboard(),
     answer: "apple",
@@ -11,7 +11,7 @@ const GameState = {
         return this.attempt;
     },
     getCurrentGuess() {
-        let currentGuess = this.userAttempts[this.attempt];
+        let currentGuess = this.userAttempts[this.attempt] ?? "";
         return currentGuess;
     },
     setUserAttempt(currentGuess) {

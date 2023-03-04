@@ -20,7 +20,8 @@ function startGame(round) {
     let {attempt, userAttempts, highlightedRows, keyboard, answer, status} =
         loadOrStartGame();
 
-    while (attempt <= round) {
+    // 6. stop game if status is failure or success
+    while (attempt <= round && status === "in-progress") {
         let userInput = prompt("Guess a five letter word: ");
         // 1. Check if word is in word list
         if (isInputCorrect(userInput)) {
@@ -141,7 +142,7 @@ function loadOrStartGame() {
     }
     return {
         attempt: 1,
-        userAttempts: Array.from({length: MAX_ATTEMPTS}).map(() => ""),
+        userAttempts: [],
         highlightedRows: [],
         keyboard: getKeyboard(),
         answer,

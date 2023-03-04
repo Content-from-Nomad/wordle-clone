@@ -105,10 +105,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const highlightedCharacters = checkCharacters(currentGuess, answer);
             GameState.setHighLightedRows(highlightedCharacters);
 
-            const highlightKeyboard = updateKeyboardHighlights(keyboard, currentGuess, highlightedCharacters);
+            const highlightKeyboard = updateKeyboardHighlights(
+                keyboard,
+                currentGuess,
+                highlightedCharacters
+            );
             GameState.setHighlightedKeyboard(highlightKeyboard);
 
-            const updatedStatus = updateGameStatus(currentGuess, answer, attempt, MAX_ATTEMPTS);
+            const updatedStatus = updateGameStatus(
+                currentGuess,
+                answer,
+                attempt,
+                MAX_ATTEMPTS
+            );
             GameState.setStatus(updatedStatus);
 
             // saveGame(GAME_STATE)
@@ -143,13 +152,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 TILES[i].dataset["animation"] = "flip";
                 TILES[i].style.animationDelay = `${charIndex * 400}ms`;
                 TILES[i].onanimationstart = () => {
-                    setTimeout(() => (TILES[i].dataset["status"] = status), 250);
+                    setTimeout(
+                        () => (TILES[i].dataset["status"] = status),
+                        250
+                    );
                 };
                 // If this is the last tile of the row
                 // FIXME: will this have issue when repainting an old game?
                 if (i === endTile - 1) {
                     if (gameStatus === "success") {
-                        TILES[i].onanimationend = () => handleSuccessAnimation(index);
+                        TILES[i].onanimationend = () =>
+                            handleSuccessAnimation(index);
                     } else if (gameStatus === "failure") {
                         TILES[i].onanimationend = () => {
                             alert(`The word was ${answer.toUpperCase()}`);
