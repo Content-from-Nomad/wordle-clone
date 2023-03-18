@@ -31,5 +31,3 @@ const GameState = {
         return this.status;
     },
 };
-
-// Example on git

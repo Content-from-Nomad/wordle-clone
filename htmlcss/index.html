@@ -5,7 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
-            h1 {
+            /* h1 {
                 color: blue;
             }
             .color2 {
@@ -13,7 +13,7 @@
             }
             #color3 {
                 color: yellow;
-            }
+            } */
             .frontend {
                 /* width: 50%; */
                 margin: 50px;
@@ -21,6 +21,11 @@
                 border: 1px solid black;
                 display: flex;
                 justify-content: space-between;
+            }
+            .counter {
+                font-size: 3rem;
+                text-align: center;
+                font-family: "'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif'";
             }
         </style>
         <title>HTML CSS Lesson</title>
@@ -36,8 +41,78 @@
             <!-- use id to style it yellow -->
             <h2 id="color3">CSS</h2>
             <!-- most most specific: inline style -->
-            <h2 style="color: green">JavaScript</h2>
+            <!-- <h2 style="color: green">JavaScript</h2> -->
+            <h2>JavaScript</h2>
         </div>
+
+        <div class="counter">
+            <p>0</p>
+            <button>Down</button>
+            <button>Up</button>
+        </div>
+
         <h1>Wordle Lesson</h1>
+
+        <script>
+            // 7. Counter
+            let number = 0;
+            let container = document.querySelector(".counter");
+            let numberElement = container.querySelector("p");
+            let downButton = container.querySelectorAll("button")[0];
+            let upButton = container.querySelectorAll("button")[1];
+
+            function countdown() {
+                // 1. number - 1
+                number = number - 1;
+                // 2. Update numberElement
+                numberElement.innerText = number;
+            }
+            downButton.addEventListener("click", countdown);
+
+            function countUp() {
+                number = number + 1;
+                numberElement.innerText = number;
+            }
+            upButton.onclick = countUp;
+
+            function updateCount(event) {
+                if (event.key === "ArrowLeft") {
+                    countdown();
+                } else if (event.key === "ArrowRight") {
+                    countUp();
+                }
+            }
+            document.addEventListener("keydown", updateCount);
+
+            console.log("hello");
+            // 1. Make "HTML" language red
+            document.querySelector(".color2").style.color = "red";
+
+            // 2. Make "CSS" language green
+            document.querySelector("#color3").style.color = "green";
+
+            // 3. Make all programming language blue
+            // document.querySelector("").style.color = "blue";
+
+            // 4. Console log (print) all the languages on the
+            // screen
+            let h2List = document.querySelectorAll("h2");
+            for (let i = 0; i < 3; i++) {
+                console.log(h2List[i].innerText);
+            }
+
+            // 5. Change the h1 "HTML CSS Lesson" to "HTML CSS
+            // JavaScript Lesson"
+            document.querySelector("h1").innerText =
+                "HTML CSS JavaScript Lesson";
+
+            // 6. Add "Python" to the list of languages
+            let box = document.querySelector(".frontend");
+            box.innerHTML = box.innerHTML + "Python";
+
+            let python = document.createElement("h2");
+            python.innerText = "Python";
+            box.appendChild(python);
+        </script>
     </body>
 </html>
