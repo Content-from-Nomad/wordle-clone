@@ -131,17 +131,37 @@ function saveGame(gameState) {
     window.localStorage.setItem("PREFACE_WORDLE", JSON.stringify(gameState));
 }
 
-function loadOrStartGame() {
-    const answer = wordList[0];
+function getTodaysAnswer() {
+    const offsetFromDate = new Date(2023, 0, 1).getTime();
+    const msOffset = Date.now() - offsetFromDate;
+    const dayOffset = msOffset / 1000 / 60 / 60 / 24;
+    const answerIndex = (wordList.length - 1) % Math.floor(dayOffset);
+    return wordList[answerIndex];
+}
+
+function isToday(timestamp) {
+    const today = new Date();
+    const check = new Date(timestamp);
+    return today.toDateString() === check.toDateString();
+}
+
+function loadOrStartGame(debug) {
+    let answer;
+    if (debug) {
+        answer = wordList[0];
+    } else {
+        answer = getTodaysAnswer();
+    }
     const prevGame = JSON.parse(window.localStorage.getItem("PREFACE_WORDLE"));
-    if (prevGame) {
+
+    if (prevGame && isToday(prevGame.timestamp)) {
         return {
             ...prevGame,
             answer,
         };
     }
     return {
-        attempt: 1,
+        attempt: 0,
         userAttempts: [],
         highlightedRows: [],
         keyboard: getKeyboard(),

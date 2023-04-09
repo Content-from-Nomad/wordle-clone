@@ -1,17 +1,14 @@
 /** Wait for Content to load */
 document.addEventListener("DOMContentLoaded", () => {
-    startWebGame();
-
     const TILES = Array.from(document.querySelectorAll(".tile"));
+    const ROWS = Array.from(document.querySelectorAll(".row"));
+    const KEYBOARD = document.querySelector("#keyboard");
+    const KEYBOARD_KEYS = KEYBOARD.querySelectorAll("button");
 
     /** Start the whole game (Student) */
     function startWebGame() {
-        /**
-         * 1. Load game state
-         * 2. Paint game state
-         * 3. Bind events or Stop events
-         */
-        console.log(GameState);
+        GameState.loadOrStart(true);
+        paintGameState();
         startInteraction();
     }
 
@@ -53,9 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /** Handle keypress (Student) */
     function pressKey(key) {
-        console.log("key", key);
-        // TODO: implement status
-        // if (status === "success" || status === "fail") return;
+        const status = GameState.getStatus();
+
+        if (status !== "in-progress") {
+            return;
+        }
+
         const currentGuess = GameState.getCurrentGuess();
 
         let next = TILES.findIndex(tileEle => tileEle.innerText === "");
@@ -93,40 +93,59 @@ document.addEventListener("DOMContentLoaded", () => {
         const lastTile = TILES[next - 1];
         lastTile.textContent = "";
         lastTile.dataset["status"] = "empty";
+        lastTile.removeAttribute("data-animation");
         currentGuess = currentGuess.slice(0, currentLength - 1);
         GameState.setUserAttempt(currentGuess);
     }
 
     /** Handle Submit (Student) */
     async function handleSubmit(currentGuess) {
-        if (currentGuess.length < WORD_LENGTH) return;
-        const {attempt, keyboard, answer} = GameState;
-        if (isInputCorrect(currentGuess)) {
-            const highlightedCharacters = checkCharacters(currentGuess, answer);
-            GameState.setHighLightedRows(highlightedCharacters);
+        if (currentGuess.length < WORD_LENGTH) {
+            return;
+        }
 
-            const highlightKeyboard = updateKeyboardHighlights(
-                keyboard,
+        const answer = GameState.getAnswer();
+        const oldKeyboard = GameState.getKeyboard();
+        const attempt = GameState.getAttempt();
+
+        // 1. Check if word is in word list
+        if (isInputCorrect(currentGuess)) {
+            // 2. absent (grey), present (yellow), correct (green)
+            const highlightedCharacters = checkCharacters(currentGuess, answer);
+            GameState.setHighlightedRows(highlightedCharacters);
+            // 3. highlight keyboard
+            const newKeyboard = updateKeyboardHighlights(
+                oldKeyboard,
                 currentGuess,
                 highlightedCharacters
             );
-            GameState.setHighlightedKeyboard(highlightKeyboard);
+            GameState.setKeyboard(newKeyboard);
+            // 4. Paint Attempt (can see the changes on website)
+            // a. On the attempt row: Flip tile + Color tile
+            // b. Color the keyboard
+            await paintAttempt(attempt, highlightedCharacters, newKeyboard);
 
-            const updatedStatus = updateGameStatus(
+            // 5. update status
+            const newStatus = updateGameStatus(
                 currentGuess,
                 answer,
-                attempt,
-                MAX_ATTEMPTS
+                attempt + 1, // MAX_ATTEMPT is 1-based
+                MAX_ATTEMPTS // default 6
             );
-            GameState.setStatus(updatedStatus);
+            GameState.setStatus(newStatus);
 
-            // saveGame(GAME_STATE)
+            await paintResult(newStatus, answer, attempt);
 
-            await paintAttempt(attempt, highlightedCharacters);
-
+            // 6. Update attempt count
             GameState.incrementAttempt();
 
+            // 7. Save game
+            GameState.save();
+
             console.log("GAME_STATE", GameState);
+        } else {
+            // 8. Handle wrong words
+            shakeRow(currentGuess, attempt);
         }
     }
 
@@ -134,21 +153,33 @@ document.addEventListener("DOMContentLoaded", () => {
     async function paintAttempt(attempt, highlightedCharacters) {
         stopInteraction();
         await paintRow(attempt, highlightedCharacters);
-        // await paintKeyboard()
+        paintKeyboard();
         startInteraction();
     }
 
+    /** Shaking a row on the board (Partially student) */
+    function shakeRow(currentGuess, index) {
+        stopInteraction();
+
+        alert(`${currentGuess.toUpperCase()} not in world list`);
+
+        ROWS[index].dataset.status = "invalid";
+        ROWS[index].onanimationend = () => {
+            ROWS[index].removeAttribute("data-status");
+            startInteraction();
+        };
+    }
+
     /** Painting a row on the board (Partially student) */
+    // Can use ROWS for this as well
     async function paintRow(index, evaluation) {
-        const {status: gameStatus, answer} = GameState;
         const startTile = index * WORD_LENGTH;
-        const endTile = startTile + WORD_LENGTH;
+        const endTile = startTile + WORD_LENGTH - 1;
 
         return new Promise(resolve => {
-            for (let i = startTile; i < endTile; i++) {
+            for (let i = startTile; i <= endTile; i++) {
                 const charIndex = i % WORD_LENGTH;
                 const status = evaluation[charIndex];
-                /** Student */
                 TILES[i].dataset["animation"] = "flip";
                 TILES[i].style.animationDelay = `${charIndex * 400}ms`;
                 TILES[i].onanimationstart = () => {
@@ -157,34 +188,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         250
                     );
                 };
-                // If this is the last tile of the row
-                // FIXME: will this have issue when repainting an old game?
-                if (i === endTile - 1) {
-                    if (gameStatus === "success") {
-                        TILES[i].onanimationend = () =>
-                            handleSuccessAnimation(index);
-                    } else if (gameStatus === "failure") {
-                        TILES[i].onanimationend = () => {
-                            alert(`The word was ${answer.toUpperCase()}`);
-                        };
-                    } else {
-                        TILES[i].onanimationend = resolve;
-                    }
+                if (i === endTile) {
+                    TILES[i].onanimationend = resolve;
                 }
             }
         });
     }
 
-    /** When game ends and status is success */
+    /** Handle game status animation (Student) */
+    async function paintResult(newStatus, answer, index) {
+        if (newStatus === "in-progress") {
+            return;
+        }
+        if (newStatus === "success") {
+            handleSuccessAnimation(index);
+        } else {
+            alert(`The word was ${answer.toUpperCase()}`);
+        }
+    }
+
+    /** When game ends and status is success (Student) */
+    // Can use ROWS for this as well
     function handleSuccessAnimation(index) {
         const startTile = index * WORD_LENGTH;
-        const endTile = startTile + WORD_LENGTH;
+        const endTile = startTile + WORD_LENGTH - 1;
 
-        for (let i = startTile; i < endTile; i++) {
+        for (let i = startTile; i <= endTile; i++) {
             TILES[i].dataset["animation"] = "win";
             TILES[i].style.animationDelay = `${(i % WORD_LENGTH) * 100}ms`;
 
-            if (i === endTile - 1) {
+            if (i === endTile) {
                 TILES[i].onanimationend = () => {
                     alert(`${CONGRATULATIONS[index]}!`);
                 };
@@ -192,6 +225,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /** Painting a whole Game State  */
-    function paintGameState(gameState) {}
+    /** Highligh keyboard keys (Student) */
+    function paintKeyboard() {
+        const newKeyboard = GameState.getKeyboard();
+
+        KEYBOARD_KEYS.forEach(keyEl => {
+            const key = keyEl.dataset.key;
+            const newStatus = newKeyboard[key];
+            keyEl.dataset.status = newStatus;
+        });
+    }
+
+    /** Painting a whole Game State (Student) */
+    async function paintGameState() {
+        const attempt = GameState.getAttempt();
+
+        if (attempt === 0) {
+            return;
+        }
+
+        const evaluation = GameState.getHighlightedRows();
+        const userAttempts = GameState.getUserAttempt();
+        const previousChars = userAttempts.flatMap(word => [...word.split("")]);
+
+        paintKeyboard();
+
+        previousChars.forEach((char, i) => {
+            TILES[i].textContent = char;
+            TILES[i].dataset.status = "reveal";
+        });
+
+        for (let col = 0; col < WORD_LENGTH; col++) {
+            for (let row = 0; row < attempt; row++) {
+                const idx = row * WORD_LENGTH + col;
+                TILES[idx].dataset.animation = "flip";
+                TILES[idx].style.animationDelay = `${col * 400}ms`;
+                TILES[idx].onanimationstart = () => {
+                    setTimeout(() => {
+                        TILES[idx].dataset.status = evaluation[row][col];
+                    }, 200);
+                };
+            }
+        }
+    }
+
+    startWebGame();
 });
