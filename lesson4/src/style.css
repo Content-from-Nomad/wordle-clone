@@ -88,7 +88,6 @@ nav .navbar-brand {
 }
 
 nav .left {
-    width: 70px;
     justify-self: flex-start;
 }
 
@@ -101,7 +100,6 @@ nav .title {
 
 nav .right {
     display: flex;
-    width: 70px;
     justify-content: flex-end;
     align-items: flex-end;
 }
@@ -152,6 +150,20 @@ nav #stat-button {
     box-sizing: border-box;
     min-width: 350px;
     min-height: 420px;
+}
+
+@media only screen and (max-width: 320px) {
+    #board-container #board {
+        min-width: 320px;
+        min-height: 420px;
+    }
+}
+
+@media only screen and (max-height: 670px) {
+    #board-container #board {
+        min-width: 80%;
+        min-height: 80%;
+    }
 }
 
 .row {
