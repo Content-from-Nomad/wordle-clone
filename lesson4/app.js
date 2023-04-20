@@ -1,8 +1,13 @@
 /** Wait for Content to load */
 document.addEventListener("DOMContentLoaded", () => {
+    /** Constants that contain elements on the screen */
+    // Get all 30 tiles
     const TILES = Array.from(document.querySelectorAll(".tile"));
-    const ROWS = Array.from(document.querySelectorAll(".row"));
+    // Get all 6 rows
+    const ROWS = document.querySelectorAll(".row");
+    // First get the keyboard
     const KEYBOARD = document.querySelector("#keyboard");
+    // Then get each key on the keyboard
     const KEYBOARD_KEYS = KEYBOARD.querySelectorAll("button");
 
     /** Start the whole game (Student) */
@@ -58,7 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const currentGuess = GameState.getCurrentGuess();
 
-        let next = TILES.findIndex(tileEle => tileEle.innerText === "");
+        let next = Array.from(TILES).findIndex(
+            tileEle => tileEle.innerText === ""
+        );
 
         if (next === -1) {
             next = MAX_ATTEMPTS * WORD_LENGTH;
@@ -67,39 +74,47 @@ document.addEventListener("DOMContentLoaded", () => {
         const regex = new RegExp("^[a-zA-Z]$");
 
         if (regex.test(key)) {
-            handleKey(currentGuess, key, next);
+            handleAlphabetKey(currentGuess, key, next);
         } else if (key === "Backspace" || key === "Delete") {
-            handleDelete(currentGuess, next);
+            handleDeleteKey(currentGuess, next);
         } else if (key === "Enter") {
-            handleSubmit(currentGuess, next);
+            handleSubmitKey(currentGuess, next);
         }
     }
 
     /** Handle a valid keypress (Student) */
-    function handleKey(currentGuess, key, next) {
+    function handleAlphabetKey(currentGuess, key, next) {
         const currentLength = currentGuess.length;
-        if (currentLength === WORD_LENGTH) return;
+        if (currentLength === WORD_LENGTH) {
+            return;
+        }
         const nextTile = TILES[next];
         nextTile.textContent = key;
-        nextTile.dataset["status"] = "tbd";
-        nextTile.dataset["animation"] = "pop";
+        nextTile.dataset.status = "tbd";
+        nextTile.dataset.animation = "pop";
+        // Appends to the last word in user attempts
+        // eg. "b" -> "ba" -> "bat"
         GameState.setUserAttempt(currentGuess + key);
     }
 
     /** Handle delete (Student) */
-    function handleDelete(currentGuess, next) {
-        if (currentGuess === "") return;
+    function handleDeleteKey(currentGuess, next) {
+        if (currentGuess === "") {
+            return;
+        }
         const currentLength = currentGuess.length;
         const lastTile = TILES[next - 1];
         lastTile.textContent = "";
-        lastTile.dataset["status"] = "empty";
+        lastTile.dataset.status = "empty";
         lastTile.removeAttribute("data-animation");
+        // Remove the last character
+        // eg. "bat" -> "ba" -> "b" -> ""
         currentGuess = currentGuess.slice(0, currentLength - 1);
         GameState.setUserAttempt(currentGuess);
     }
 
     /** Handle Submit (Student) */
-    async function handleSubmit(currentGuess) {
+    async function handleSubmitKey(currentGuess) {
         if (currentGuess.length < WORD_LENGTH) {
             return;
         }
@@ -108,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const oldKeyboard = GameState.getKeyboard();
         const attempt = GameState.getAttempt();
 
+        // FIXME: rename methods
         // 1. Check if word is in word list
         if (isInputCorrect(currentGuess)) {
             // 2. absent (grey), present (yellow), correct (green)
@@ -129,8 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const newStatus = updateGameStatus(
                 currentGuess,
                 answer,
-                attempt + 1, // MAX_ATTEMPT is 1-based
-                MAX_ATTEMPTS // default 6
+                attempt,
+                MAX_ATTEMPTS - 1 // MAX_ATTEMPT is 1-based
             );
             GameState.setStatus(newStatus);
 
@@ -157,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
         startInteraction();
     }
 
-    /** Shaking a row on the board (Partially student) */
+    /** Shaking a row on the board (Student) */
     function shakeRow(currentGuess, index) {
         stopInteraction();
 
@@ -170,36 +186,67 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    /** Painting a row on the board (Partially student) */
-    // Can use ROWS for this as well
+    /** Painting a row on the board (Student) */
     async function paintRow(index, evaluation) {
-        const startTile = index * WORD_LENGTH;
-        const endTile = startTile + WORD_LENGTH - 1;
+        const row = ROWS[index];
+        const tileRow = row.querySelectorAll(".tile");
+        const flipSpeed = 400;
 
-        return new Promise(resolve => {
-            for (let i = startTile; i <= endTile; i++) {
-                const charIndex = i % WORD_LENGTH;
-                const status = evaluation[charIndex];
-                TILES[i].dataset["animation"] = "flip";
-                TILES[i].style.animationDelay = `${charIndex * 400}ms`;
-                TILES[i].onanimationstart = () => {
-                    setTimeout(
-                        () => (TILES[i].dataset["status"] = status),
-                        250
-                    );
-                };
-                if (i === endTile) {
-                    TILES[i].onanimationend = resolve;
-                }
+        const animate = getRowAnimation(flipSpeed, tileRow, evaluation);
+        window.requestAnimationFrame(animate);
+
+        // FIXME: alternative?
+        await sleep(flipSpeed * (WORD_LENGTH + 1));
+    }
+
+    /** Using requestAnimationFrame to time each tile's animation */
+    function getRowAnimation(flipSpeed, tileRow, tilesHighlights) {
+        let start = 0;
+        let index = 0;
+        let stopId = 0;
+
+        // timestamp is ms
+        return function animateRow(timestamp) {
+            // set start to current timestamp
+            if (start === 0) {
+                start = timestamp;
             }
-        });
+            // if index passed is the last tile on the row
+            if (index === WORD_LENGTH) {
+                window.cancelAnimationFrame(stopId);
+                return;
+            }
+            // if current tile is not flipped
+            if (tileRow[index].dataset.animation !== "flip") {
+                // start the flip
+                tileRow[index].dataset.animation = "flip";
+            }
+            // if timestamp - start is halfway through the tileLimit
+            if (timestamp - start >= flipSpeed / 2) {
+                // change the status
+                tileRow[index].dataset.status = tilesHighlights[index];
+            }
+            // if timestamp - start is through the tileLimit
+            if (timestamp - start >= flipSpeed) {
+                // increment the index to next tile
+                start = timestamp;
+                index += 1;
+            }
+
+            stopId = window.requestAnimationFrame(animateRow);
+        };
     }
 
     /** Handle game status animation (Student) */
     async function paintResult(newStatus, answer, index) {
         if (newStatus === "in-progress") {
+            // Game is still in-progress, so nothing to paint or unbind
             return;
         }
+
+        // If success or failed, stop interaction
+        stopInteraction();
+
         if (newStatus === "success") {
             handleSuccessAnimation(index);
         } else {
@@ -208,17 +255,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** When game ends and status is success (Student) */
-    // Can use ROWS for this as well
     function handleSuccessAnimation(index) {
-        const startTile = index * WORD_LENGTH;
-        const endTile = startTile + WORD_LENGTH - 1;
+        const row = ROWS[index];
+        const tileRow = row.querySelectorAll(".tile");
 
-        for (let i = startTile; i <= endTile; i++) {
-            TILES[i].dataset["animation"] = "win";
-            TILES[i].style.animationDelay = `${(i % WORD_LENGTH) * 100}ms`;
+        for (let i = 0; i < WORD_LENGTH; i++) {
+            tileRow[i].dataset.animation = "win";
+            tileRow[i].style.animationDelay = `${i * 100}ms`;
 
-            if (i === endTile) {
-                TILES[i].onanimationend = () => {
+            if (i === WORD_LENGTH - 1) {
+                tileRow[i].onanimationend = () => {
+                    console.log("first");
                     alert(`${CONGRATULATIONS[index]}!`);
                 };
             }
@@ -267,6 +314,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
             }
         }
+    }
+
+    /** JavaScript sleep implementation */
+    async function sleep(timeout) {
+        return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
     startWebGame();
