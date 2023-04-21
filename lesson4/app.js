@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const KEYBOARD = document.querySelector("#keyboard");
     // Then get each key on the keyboard
     const KEYBOARD_KEYS = KEYBOARD.querySelectorAll("button");
+    // Flip animation speed
+    const FLIP_SPEED = 150;
 
     /** Start the whole game (Student) */
     function startWebGame() {
@@ -190,17 +192,16 @@ document.addEventListener("DOMContentLoaded", () => {
     async function paintRow(index, evaluation) {
         const row = ROWS[index];
         const tileRow = row.querySelectorAll(".tile");
-        const flipSpeed = 400;
 
-        const animate = getRowAnimation(flipSpeed, tileRow, evaluation);
+        const animate = getRowAnimation(tileRow, evaluation);
         window.requestAnimationFrame(animate);
 
         // FIXME: alternative?
-        await sleep(flipSpeed * (WORD_LENGTH + 1));
+        await sleep(FLIP_SPEED * (WORD_LENGTH + 1));
     }
 
     /** Using requestAnimationFrame to time each tile's animation */
-    function getRowAnimation(flipSpeed, tileRow, tilesHighlights) {
+    function getRowAnimation(tileRow, tilesHighlights) {
         let start = 0;
         let index = 0;
         let stopId = 0;
@@ -222,12 +223,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 tileRow[index].dataset.animation = "flip";
             }
             // if timestamp - start is halfway through the tileLimit
-            if (timestamp - start >= flipSpeed / 2) {
+            if (timestamp - start >= FLIP_SPEED / 2) {
                 // change the status
                 tileRow[index].dataset.status = tilesHighlights[index];
             }
             // if timestamp - start is through the tileLimit
-            if (timestamp - start >= flipSpeed) {
+            if (timestamp - start >= FLIP_SPEED) {
                 // increment the index to next tile
                 start = timestamp;
                 index += 1;
@@ -287,35 +288,63 @@ document.addEventListener("DOMContentLoaded", () => {
     async function paintGameState() {
         const attempt = GameState.getAttempt();
 
+        // Start of a new game so game state is empty
         if (attempt === 0) {
             return;
         }
 
         const evaluation = GameState.getHighlightedRows();
         const userAttempts = GameState.getUserAttempt();
-        const previousChars = userAttempts.flatMap(word => [...word.split("")]);
 
         paintKeyboard();
 
-        previousChars.forEach((char, i) => {
-            TILES[i].textContent = char;
-            TILES[i].dataset.status = "reveal";
-        });
-
-        for (let col = 0; col < WORD_LENGTH; col++) {
-            for (let row = 0; row < attempt; row++) {
-                const idx = row * WORD_LENGTH + col;
-                TILES[idx].dataset.animation = "flip";
-                TILES[idx].style.animationDelay = `${col * 400}ms`;
-                TILES[idx].onanimationstart = () => {
-                    setTimeout(() => {
-                        TILES[idx].dataset.status = evaluation[row][col];
-                    }, 200);
-                };
-            }
-        }
+        const animate = animateColumn(attempt, userAttempts, evaluation);
+        window.requestAnimationFrame(animate);
     }
 
+    function animateColumn(attempt, userAttempts, evaluation) {
+        let start = 0;
+        let stopId = 0;
+        let column = 0;
+        let isColumnAnimating = false;
+        let tileColumn = [];
+
+        return function animate(timestamp) {
+            if (start === 0) {
+                start = timestamp;
+            }
+            if (!isColumnAnimating) {
+                // get all tile of this column
+                // eg. 12 % 5 = 2, 17 % 5 = 2
+                tileColumn = TILES.slice(0, WORD_LENGTH * attempt).filter(
+                    (tile, index) => index % WORD_LENGTH === column
+                );
+
+                tileColumn.forEach((tile, rowIndex) => {
+                    tile.textContent = userAttempts[rowIndex][column];
+                    tile.dataset.status = "reveal";
+                    tile.dataset.animation = "flip";
+                });
+                isColumnAnimating = true;
+            }
+            // half way through animating, add in the color
+            if (timestamp - start >= FLIP_SPEED / 2) {
+                tileColumn.forEach((tile, rowIndex) => {
+                    tile.dataset.status = evaluation[rowIndex][column];
+                });
+            }
+            // tile's animation can end
+            if (timestamp - start >= FLIP_SPEED) {
+                isColumnAnimating = false;
+                start = timestamp;
+                column += 1;
+            }
+            if (column === WORD_LENGTH - 1) {
+                window.cancelAnimationFrame(stopId);
+            }
+            stopId = window.requestAnimationFrame(animate);
+        };
+    }
     /** JavaScript sleep implementation */
     async function sleep(timeout) {
         return new Promise(resolve => setTimeout(resolve, timeout));
