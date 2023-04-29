@@ -1,4 +1,4 @@
-const wordList = [
+const testWordList = [
     "apple",
     "alley",
     "paper",
@@ -7,6 +7,8 @@ const wordList = [
     "books",
     "cheap",
 ];
+
+let wordList = {valid: [], playable: []};
 
 const rating = {
     unknown: 0,
@@ -58,7 +60,7 @@ function startGame(round) {
 }
 
 function isInputCorrect(word) {
-    return wordList.includes(word);
+    return wordList.playable.includes(word) || wordList.valid.includes(word);
 }
 
 function retry(word) {
@@ -132,11 +134,16 @@ function saveGame(gameState) {
 }
 
 function getTodaysAnswer() {
+    // Starting point of your game
     const offsetFromDate = new Date(2023, 0, 1).getTime();
-    const msOffset = Date.now() - offsetFromDate;
-    const dayOffset = msOffset / 1000 / 60 / 60 / 24;
-    const answerIndex = (wordList.length - 1) % Math.floor(dayOffset);
-    return wordList[answerIndex];
+    // Get today
+    const today = new Date().getTime();
+    // Calculate ms offset
+    const msOffset = today - offsetFromDate;
+    // Calculate how many days has pass
+    const daysOffset = msOffset / 1000 / 60 / 60 / 24;
+    const answerIndex = Math.floor(daysOffset);
+    return wordList.playable[answerIndex];
 }
 
 function isToday(timestamp) {
@@ -145,10 +152,19 @@ function isToday(timestamp) {
     return today.toDateString() === check.toDateString();
 }
 
-function loadOrStartGame(debug) {
+async function loadOrStartGame(debug) {
+    wordList = await fetch("./src/fixtures/words.json")
+        .then(response => {
+            return response.json();
+        })
+        .then(json => {
+            return json;
+        });
+
     let answer;
+
     if (debug) {
-        answer = wordList[0];
+        answer = testWordList[0];
     } else {
         answer = getTodaysAnswer();
     }

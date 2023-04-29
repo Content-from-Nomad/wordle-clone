@@ -58,7 +58,7 @@ const GameState = {
             timestamp: new Date().getTime(),
         });
     },
-    loadOrStart(debug) {
+    async loadOrStart(debug) {
         const {
             attempt,
             userAttempts,
@@ -66,7 +66,7 @@ const GameState = {
             keyboard,
             answer,
             status,
-        } = loadOrStartGame(debug);
+        } = await loadOrStartGame(debug);
         this.attempt = attempt;
         this.userAttempts = userAttempts;
         this.highlightedRows = highlightedRows;

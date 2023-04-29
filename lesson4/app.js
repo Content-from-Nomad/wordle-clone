@@ -1,5 +1,5 @@
 /** Wait for Content to load */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     /** Constants that contain elements on the screen */
     // Get all 30 tiles
     const TILES = Array.from(document.querySelectorAll(".tile"));
@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const FLIP_SPEED = 150;
 
     /** Start the whole game (Student) */
-    function startWebGame() {
-        GameState.loadOrStart(true);
+    async function startWebGame() {
+        await GameState.loadOrStart();
         paintGameState();
         startInteraction();
     }
@@ -290,5 +290,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    startWebGame();
+    await startWebGame();
 });
