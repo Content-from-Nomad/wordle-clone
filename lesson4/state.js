@@ -1,30 +1,30 @@
 /** Game State (Student) */
 const GameState = {
-    attempt: 0,
+    attemptCount: 0,
     userAttempts: [],
     highlightedRows: [],
     keyboard: getKeyboard(),
-    answer: "apple",
+    answer: "apple", // Only used for debugging
     status: "in-progress",
-    getAttempt() {
-        return this.attempt;
+    getAttemptCount() {
+        return this.attemptCount;
     },
     incrementAttempt() {
-        this.attempt += 1;
-        return this.attempt;
+        this.attemptCount += 1;
+        return this.attemptCount;
     },
     getAnswer() {
         return this.answer;
     },
     getCurrentGuess() {
-        let currentGuess = this.userAttempts[this.attempt] ?? "";
+        let currentGuess = this.userAttempts[this.attemptCount] ?? "";
         return currentGuess;
     },
     getUserAttempt() {
         return this.userAttempts;
     },
     setUserAttempt(currentGuess) {
-        this.userAttempts[this.attempt] = currentGuess;
+        this.userAttempts[this.attemptCount] = currentGuess;
         return this.userAttempts;
     },
     getHighlightedRows() {
@@ -50,7 +50,7 @@ const GameState = {
     },
     save() {
         saveGame({
-            attempt: this.attempt,
+            attemptCount: this.attemptCount,
             userAttempts: this.userAttempts,
             highlightedRows: this.highlightedRows,
             keyboard: this.keyboard,
@@ -60,14 +60,14 @@ const GameState = {
     },
     async loadOrStart(debug) {
         const {
-            attempt,
+            attemptCount,
             userAttempts,
             highlightedRows,
             keyboard,
             answer,
             status,
         } = await loadOrStartGame(debug);
-        this.attempt = attempt;
+        this.attemptCount = attemptCount;
         this.userAttempts = userAttempts;
         this.highlightedRows = highlightedRows;
         this.keyboard = keyboard;

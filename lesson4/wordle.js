@@ -19,42 +19,51 @@ const rating = {
 
 function startGame(round) {
     // 8. load or start the game
-    let {attempt, userAttempts, highlightedRows, keyboard, answer, status} =
-        loadOrStartGame();
+    let {
+        attemptCount,
+        userAttempts,
+        highlightedRows,
+        keyboard,
+        answer,
+        status,
+    } = loadOrStartGame();
 
-    // 6. stop game if status is failure or success
-    while (attempt <= round && status === "in-progress") {
-        let userInput = prompt("Guess a five letter word: ");
+    // 6. stop game if user reached maximum rounds or status is failure or success
+    while (attemptCount <= round && status === "in-progress") {
+        let currentGuess = prompt("Guess a five letter word: ");
         // 1. Check if word is in word list
-        if (isInputCorrect(userInput)) {
-            console.log(userInput);
-            // 2. Update user attempts
-            userAttempts.push(userInput);
-            // 3. Update attempt count
-            attempt = attempt + 1;
-            // 4. absent (grey), present (yellow), correct (green)
-            const highlightedCharacters = checkCharacters(userInput, answer);
+        if (isInputCorrect(currentGuess)) {
+            // 2. absent (grey), present (yellow), correct (green)
+            const highlightedCharacters = getCharactersHighlight(
+                currentGuess,
+                answer
+            );
             highlightedRows.push(highlightedCharacters);
-            console.log(highlightedCharacters);
-            // 5. highlight keyboard
+            // 3. highlight keyboard
             keyboard = updateKeyboardHighlights(
                 keyboard,
-                userInput,
+                currentGuess,
                 highlightedCharacters
             );
-            console.log(keyboard);
-            // 6. update status
-            status = updateGameStatus(userInput, answer, attempt, round);
-            // 7. save game
+            // 4. update status
+            status = updateGameStatus(
+                currentGuess,
+                answer,
+                attemptCount,
+                round - 1
+            );
+            // 5. Update attempt count
+            attemptCount = attemptCount + 1;
+            // 6. save game
             saveGame({
-                attempt,
+                attemptCount,
                 userAttempts,
                 highlightedRows,
                 keyboard,
                 status,
             });
         } else {
-            retry(userInput);
+            retry(currentGuess);
         }
     }
 }
@@ -67,13 +76,13 @@ function retry(word) {
     alert(`${word} is not in word list`);
 }
 
-function checkCharacters(word, answer) {
-    // 1. split characters
-    const wordSplit = word.split("");
+function getCharactersHighlight(word, answer) {
+    // 1. split word into characters
+    const charactersArray = word.split("");
     const result = [];
 
     // 2. check order of characters
-    wordSplit.forEach((character, index) => {
+    charactersArray.forEach((character, index) => {
         if (character === answer[index]) {
             // 2a. correct = index of word equal index of answer
             result.push("correct");
@@ -98,14 +107,18 @@ function getKeyboard() {
     return Object.fromEntries(entries);
 }
 
-function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
-    // 5a. use userInput ("apple") highlightedCharacters (["correct", "present"...])
+function updateKeyboardHighlights(
+    keyboard,
+    currentGuess,
+    highlightedCharacter
+) {
+    // 5a. use currentGuess ("apple") highlightedCharacters (["correct", "present"...])
     // 5b. compare keyboard["a"] with "correct",
     // if keyboard status < "correct", update keyboard
     const newKeyboard = Object.assign({}, keyboard);
 
     for (let i = 0; i < highlightedCharacter.length; i++) {
-        const character = userInput[i]; // R
+        const character = currentGuess[i]; // R
         const nextStatus = highlightedCharacter[i]; // absent
         const nextRating = rating[nextStatus]; // 1
         const previousStatus = newKeyboard[character]; // unknown
@@ -119,11 +132,11 @@ function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
     return newKeyboard;
 }
 
-function updateGameStatus(userInput, answer, attempt, round) {
-    if (userInput === answer) {
+function updateGameStatus(currentGuess, answer, attemptCount, round) {
+    if (currentGuess === answer) {
         return "success";
     }
-    if (attempt === round) {
+    if (attemptCount === round) {
         return "failure";
     }
     return "in-progress";
@@ -177,7 +190,7 @@ async function loadOrStartGame(debug) {
         };
     }
     return {
-        attempt: 0,
+        attemptCount: 0,
         userAttempts: [],
         highlightedRows: [],
         keyboard: getKeyboard(),

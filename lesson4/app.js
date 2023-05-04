@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const KEYBOARD = document.querySelector("#keyboard");
     // Then get each key on the keyboard
     const KEYBOARD_KEYS = KEYBOARD.querySelectorAll("button");
-    // Flip animation speed
-    const FLIP_SPEED = 150;
 
     /** Start the whole game (Student) */
     async function startWebGame() {
@@ -123,13 +121,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const answer = GameState.getAnswer();
         const oldKeyboard = GameState.getKeyboard();
-        const attempt = GameState.getAttempt();
+        const attemptCount = GameState.getAttemptCount();
 
-        // FIXME: rename methods
         // 1. Check if word is in word list
         if (isInputCorrect(currentGuess)) {
             // 2. absent (grey), present (yellow), correct (green)
-            const highlightedCharacters = checkCharacters(currentGuess, answer);
+            const highlightedCharacters = getCharactersHighlight(
+                currentGuess,
+                answer
+            );
             GameState.setHighlightedRows(highlightedCharacters);
             // 3. highlight keyboard
             const newKeyboard = updateKeyboardHighlights(
@@ -138,32 +138,34 @@ document.addEventListener("DOMContentLoaded", async () => {
                 highlightedCharacters
             );
             GameState.setKeyboard(newKeyboard);
-            // 4. Paint Attempt (can see the changes on website)
-            // a. On the attempt row: Flip tile + Color tile
-            // b. Color the keyboard
-            await paintAttempt(attempt, highlightedCharacters, newKeyboard);
-
-            // 5. update status
+            // 4. update status
             const newStatus = updateGameStatus(
                 currentGuess,
                 answer,
-                attempt,
+                attemptCount,
                 MAX_ATTEMPTS - 1 // MAX_ATTEMPT is 1-based
             );
             GameState.setStatus(newStatus);
-
-            await paintResult(newStatus, answer, attempt);
-
-            // 6. Update attempt count
+            // 5. Update attempt count
             GameState.incrementAttempt();
-
-            // 7. Save game
+            // 6. Save game
             GameState.save();
+
+            // 7. Paint Attempt (can see the changes on website)
+            // a. On the attempt row: Flip tile + Color tile
+            // b. Color the keyboard
+            await paintAttempt(
+                attemptCount,
+                highlightedCharacters,
+                newKeyboard
+            );
+            // 8. Paint the result of success or failure
+            await paintResult(newStatus, answer, attemptCount);
 
             console.log("GAME_STATE", GameState);
         } else {
-            // 8. Handle wrong words
-            shakeRow(currentGuess, attempt);
+            // Handle wrong words
+            shakeRow(currentGuess, attemptCount);
         }
     }
 
@@ -257,10 +259,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     /** Painting a whole Game State (Student) */
     async function paintGameState() {
-        const attempt = GameState.getAttempt();
+        const attemptCount = GameState.getAttemptCount();
 
         // Start of a new game so game state is empty
-        if (attempt === 0) {
+        if (attemptCount === 0) {
             return;
         }
 
@@ -277,7 +279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         for (let col = 0; col < WORD_LENGTH; col++) {
-            for (let row = 0; row < attempt; row++) {
+            for (let row = 0; row < attemptCount; row++) {
                 const idx = row * WORD_LENGTH + col;
                 TILES[idx].dataset.animation = "flip";
                 TILES[idx].style.animationDelay = `${col * FLIP_SPEED}ms`;

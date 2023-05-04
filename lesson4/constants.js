@@ -8,3 +8,5 @@ const CONGRATULATIONS = [
     "Great",
     "Phew",
 ];
+// Flip animation speed
+const FLIP_SPEED = 150;
