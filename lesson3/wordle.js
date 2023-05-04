@@ -1,20 +1,9 @@
-// word =   alley
-// answer = apple
-// return ["correct", "present", "present", "present", "absent"]
-
+// Keyboards... keys... alphabets... dictionary!!!
 // ["a", "b", "c"...]
 // ["present", "unknown", "absent"...]
 // {a: "present", b: "unknown", c: "absent"}
 
-// maybe for keyboard
-// present: ["a", "l"]
-// absent: ["a", "l", "e"]
-
-// a p p l e
-// p a p e r
-// b a p p e
-
-const wordList = ["right", "since", "fifth", "bappe", "fifty", "apple", "alley", "paper", "melon", "zebra", "books", "cheap"];
+const wordList = ["apple", "paper", "melon", "zebra", "books", "cheap"];
 
 const rating = {
     unknown: 0,
@@ -25,35 +14,31 @@ const rating = {
 
 function startGame(round) {
     const userAttempts = [];
-    const highlightedRows = [];
-    const answer = "apple"; // TODO: change this to by date
-    let keyboard = getKeyboard();
-    let attempt = 1;
-    while (attempt <= round) {
-        let userInput = prompt("Guess a five letter word: ");
+    const answer = wordList[0];
+    // Create the keyboard dictionary
+    const keyboard = getKeyboard();
+    let attempt = 0;
+    while (attempt < round) {
+        let currentGuess = prompt("Guess a five letter word: ");
         // 1. Check if word is in word list
-        if (isInputCorrect(userInput)) {
-            console.log(userInput);
+        if (isInputCorrect(currentGuess)) {
+            console.log(currentGuess);
             // 2. Update user attempts
-            userAttempts.push(userInput);
+            userAttempts.push(currentGuess);
             // 3. Update attempt count
             attempt = attempt + 1;
             // 4. absent (grey), present (yellow), correct (green)
-            const highlightedCharacters = checkCharacters(userInput, answer);
-            highlightedRows.push(highlightedCharacters);
-            console.log(highlightedCharacters);
+            const highlightedCharacters = checkCharacters(currentGuess, answer);
+            alert(highlightedCharacters);
             // 5. highlight keyboard
-            keyboard = updateKeyboardHighlights(keyboard, userInput, highlightedCharacters);
-            console.log(keyboard);
-            // 6. Save game
-            saveGame({
-                attempt,
+            keyboard = updateKeyboardHighlights(
                 keyboard,
-                userAttempts,
-                highlightedRows,
-            });
+                userInput,
+                highlightedCharacters
+            );
+            console.log(keyboard);
         } else {
-            retry(userInput);
+            retry(currentGuess);
         }
     }
 }
@@ -118,20 +103,4 @@ function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
     return newKeyboard;
 }
 
-function saveGame(gameState) {
-    window.localStorage.setItem("PREFACE_WORDLE", JSON.stringify(gameState));
-}
-
-startGame(1);
-
-// {
-//     present: [i],
-//     absent: [s, n, c, e]
-// }
-
-// {
-//     correct: [i, a, p],
-//     present: [t, a, p],
-//     absent: [s, n, c, e, r, g, h],
-//     unknown: [a, b, c, d...]
-// }
+startGame(2);
