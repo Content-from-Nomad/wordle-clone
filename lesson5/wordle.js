@@ -1,3 +1,4 @@
+// Announce win or lose
 // Replace test answer with today's answer
 // Use real word list
 
@@ -12,7 +13,7 @@ const rating = {
     correct: 3,
 };
 
-function startGame(round) {
+async function startGame(round) {
     // 8. load or start the game
     let {
         attemptCount,
@@ -21,25 +22,28 @@ function startGame(round) {
         keyboard,
         answer,
         status,
-    } = loadOrStartGame();
+    } = await loadOrStartGame();
 
     // 6. stop game if user reached maximum rounds or status is failure or success
     while (attemptCount < round && status === "in-progress") {
         let currentGuess = prompt("Guess a five letter word: ");
         // 1. Check if word is in word list
         if (isInputCorrect(currentGuess)) {
+            console.log(currentGuess);
             // 2. absent (grey), present (yellow), correct (green)
             const highlightedCharacters = getCharactersHighlight(
                 currentGuess,
                 answer
             );
             highlightedRows.push(highlightedCharacters);
+            console.log(highlightedCharacters);
             // 3. highlight keyboard
             keyboard = updateKeyboardHighlights(
                 keyboard,
                 currentGuess,
                 highlightedCharacters
             );
+            console.log(keyboard);
             // 4. update status
             status = updateGameStatus(
                 currentGuess,
@@ -60,6 +64,11 @@ function startGame(round) {
         } else {
             retry(currentGuess);
         }
+    }
+    if (status === "success") {
+        alert("Congratulations");
+    } else {
+        alert(`The word is ${answer}`);
     }
 }
 

@@ -66,6 +66,11 @@ function startGame(round) {
             retry(currentGuess);
         }
     }
+    if (status === "success") {
+        alert("Congratulations");
+    } else {
+        alert(`The word is ${answer}`);
+    }
 }
 
 function isInputCorrect(word) {

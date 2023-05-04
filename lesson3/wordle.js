@@ -16,7 +16,7 @@ function startGame(round) {
     const userAttempts = [];
     const answer = wordList[0];
     // Create the keyboard dictionary
-    const keyboard = getKeyboard();
+    let keyboard = getKeyboard();
     let attempt = 0;
     while (attempt < round) {
         let currentGuess = prompt("Guess a five letter word: ");
@@ -33,10 +33,10 @@ function startGame(round) {
             // 5. highlight keyboard
             keyboard = updateKeyboardHighlights(
                 keyboard,
-                userInput,
+                currentGuess,
                 highlightedCharacters
             );
-            console.log(keyboard);
+            console.log(newKeyboard);
         } else {
             retry(currentGuess);
         }
