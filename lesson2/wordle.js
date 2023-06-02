@@ -1,3 +1,12 @@
+/**
+ * Objective:
+ * 1) Saving the attempts
+ * 2) Get characters highlights
+ * 3) Learn about array
+ * - Ask student how would you store the green, yellow, grey?
+ *
+ */
+
 // current guess = P      A      P     E      R
 // answer        = A      P      P     L      E
 // result        = yellow yellow green yellow grey

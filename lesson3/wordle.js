@@ -1,3 +1,9 @@
+/**
+ * Objective:
+ * 1) Get the colours for every alphabet (keyboard highlights)
+ * 2) Learn about objects (aka dictionary in python)
+ */
+
 // Keyboards... keys... alphabets... dictionary!!!
 // ["a", "b", "c"...]
 // ["present", "unknown", "absent"...]
@@ -5,6 +11,8 @@
 
 const wordList = ["apple", "paper", "melon", "zebra", "books", "cheap"];
 
+// You can't compare colours (they don't have greater than and lesser than)
+// So you convert them to numbers!!
 const rating = {
     unknown: 0,
     absent: 1,
@@ -73,6 +81,8 @@ function checkCharacters(word, answer) {
     return result;
 }
 
+// Teacher provided
+// {"a": "unknown", "b": "unknown", ..., "z": "unknown"}
 function getKeyboard() {
     const alphabets = "abcdefghijklmnopqrstuvwxyz".split("");
     const entries = [];
@@ -95,6 +105,10 @@ function updateKeyboardHighlights(keyboard, userInput, highlightedCharacter) {
         const previousStatus = newKeyboard[character]; // unknown
         const previousRating = rating[previousStatus]; // 0
 
+        // How do we handle a colour upgrade?
+        // Eg. If previous colour is yellow, and new colour is green, final colour is green
+        // Eg. If previous colour is green, and new colour is yellow, final colour is green
+        // Keyboard always keep your best shot
         if (nextRating > previousRating) {
             newKeyboard[character] = nextStatus;
         }

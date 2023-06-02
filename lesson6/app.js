@@ -123,6 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const oldKeyboard = GameState.getKeyboard();
         const attemptCount = GameState.getAttemptCount();
 
+        /********* Move code from wordle.js to here ********/
         // 1. Check if word is in word list
         if (isInputCorrect(currentGuess)) {
             // 2. absent (grey), present (yellow), correct (green)
@@ -150,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             GameState.incrementAttempt();
             // 6. Save game
             GameState.save();
-
+            /*********************************************/
             // 7. Paint Attempt (can see the changes on website)
             // a. On the attempt row: Flip tile + Color tile
             // b. Color the keyboard

@@ -1,4 +1,10 @@
-// Update game status, save game and load game
+/**
+ * Objective:
+ * 1) Using objects (aka dictionary)
+ * 2) Update game status and announce win or lose
+ * 3) Save game and load game - optional
+ * 4) Browser technology (save things to Local Storage) - optional
+ */
 
 const wordList = ["apple", "paper", "melon", "zebra", "books", "cheap"];
 
@@ -67,6 +73,11 @@ function startGame(round) {
         } else {
             retry(currentGuess);
         }
+    }
+    if (status === "success") {
+        alert("Congratulations");
+    } else {
+        alert(`The word is ${answer}`);
     }
 }
 

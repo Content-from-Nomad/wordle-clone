@@ -1,7 +1,12 @@
-// Announce win or lose
-// Replace test answer with today's answer
-// Use real word list
+/**
+ * Objective:
+ * 1) Use the real word list
+ * 2) Replace test answer with today's answer
+ * 3) New game and word each day
+ */
 
+//                    1/1      1/2      1/3       1/4     1/5     1/6
+//                    1/7 ...
 const testWordList = ["apple", "paper", "melon", "zebra", "books", "cheap"];
 
 let wordList = {valid: [], playable: []};
