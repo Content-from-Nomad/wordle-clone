@@ -171,7 +171,7 @@ function isToday(timestamp) {
 }
 
 async function loadOrStartGame(debug) {
-    wordList = await fetch("../lesson6/src/fixtures/words.json")
+    wordList = await fetch("./src/fixtures/words.json")
         .then(response => {
             return response.json();
         })
