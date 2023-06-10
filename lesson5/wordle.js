@@ -157,14 +157,14 @@ function saveGame(gameState) {
 
 function getTodaysAnswer() {
     // Starting point of your game
-    const offsetFromDate = new Date(2023, 0, 1).getTime();
+    const offsetFromDate = new Date(2023, 5, 10).getTime();
     // Get today
     const today = new Date().getTime();
     // Calculate ms offset
     const msOffset = today - offsetFromDate;
     // Calculate how many days has pass
-    const daysOffset = msOffset / 1000 / 60 / 60 / 24;
-    const answerIndex = Math.floor(daysOffset);
+    const daysOffset = Math.floor(msOffset / 1000 / 60 / 60 / 24);
+    const answerIndex = daysOffset % wordList.playable.length;
     return wordList.playable[answerIndex];
 }
 
