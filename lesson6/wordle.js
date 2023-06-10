@@ -1,11 +1,11 @@
 const testWordList = [
-    "apple",
-    "alley",
-    "paper",
-    "melon",
-    "zebra",
-    "books",
-    "cheap",
+    "apple", // 6/3, 6/10
+    "alley", // 6/4, 6/11
+    "paper", // 6/5
+    "melon", // 6/6
+    "zebra", // 6/7
+    "books", // 6/8
+    "cheap", // 6/9
 ];
 
 let wordList = {valid: [], playable: []};
@@ -153,14 +153,14 @@ function saveGame(gameState) {
 
 function getTodaysAnswer() {
     // Starting point of your game
-    const offsetFromDate = new Date(2023, 0, 1).getTime();
+    const offsetFromDate = new Date(2023, 5, 10).getTime();
     // Get today
     const today = new Date().getTime();
     // Calculate ms offset
     const msOffset = today - offsetFromDate;
     // Calculate how many days has pass
-    const daysOffset = msOffset / 1000 / 60 / 60 / 24;
-    const answerIndex = Math.floor(daysOffset);
+    const daysOffset = Math.floor(msOffset / 1000 / 60 / 60 / 24);
+    const answerIndex = daysOffset % wordList.playable.length;
     return wordList.playable[answerIndex];
 }
 
